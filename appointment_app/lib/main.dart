@@ -122,7 +122,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   _selectedDay = selectedDay;
-                  _focusedDay = focusedDay; // 保持显示选中的日期
+                  _focusedDay = focusedDay;
                 });
               },
               selectedDayPredicate: (day) {
