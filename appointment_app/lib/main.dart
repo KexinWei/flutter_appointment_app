@@ -155,7 +155,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                _showAddAppointmentDialog(context);
+                _showAppointmentDialog(context);
               },
               child: Text('Add Appointment'),
             ),
@@ -198,13 +198,9 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-               icon: Icon(Icons.edit),
+                icon: Icon(Icons.edit),
                 onPressed: () {
-                  _showAddAppointmentDialog(
-                    context,
-                    appointment: appointment, // Pass existing appointment data
-                    isEdit: true,
-                  );
+                  _showAppointmentDialog(context, edit: true, appointment: appointment);
                 },
               ),
               IconButton(
@@ -214,26 +210,22 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
                 },
               ),
             ],
-          // trailing: IconButton(
-          //   icon: Icon(Icons.delete),
-          //   onPressed: () {
-          //     _deleteAppointment(appointment['id']);
-          //   },
           ),
         );
       },
     );
   }
-
-  void _showAddAppointmentDialog(BuildContext context,{Map<String, dynamic>? appointment, bool isEdit = false}) {
-    String appointmentTitle = appointment?['title'] ?? '';
-    DateTime? selectedDate = appointment != null ? DateTime.parse(appointment['date']) : null;
-    TimeOfDay? selectedTime = appointment != null ? TimeOfDay(
-      hour: int.parse(appointment['time'].split(':')[0]),
-      minute: int.parse(appointment['time'].split(':')[1]),
-    ) : null;
-    String? appointmentLocation = appointment?['location'];
-    String? appointmentNotes = appointment?['notes'];
+  void _showAppointmentDialog(BuildContext context, {bool edit = false, Map<String, dynamic>? appointment}) {
+    String appointmentTitle = edit && appointment != null ? appointment['title'] : '';
+    DateTime? selectedDate = edit && appointment != null ? DateTime.parse(appointment['date']) : null;
+    TimeOfDay? selectedTime = edit && appointment != null ?
+         TimeOfDay(
+            hour: int.parse(appointment['time'].split(":")[0]),
+            minute: int.parse(appointment['time'].split(":")[1]),
+          )
+        : null;
+    String? appointmentLocation = edit && appointment != null ? appointment['location'] : '';
+    String? appointmentNotes = edit && appointment != null ? appointment['notes'] : '';
 
     showDialog(
       context: context,
@@ -241,16 +233,16 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(isEdit ? 'Edit Appointmet' : 'Add Appointment'),
+              title: Text(edit ? 'Edit Appointment' : 'Add Appointment'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     decoration: InputDecoration(labelText: 'Appointment Title'),
+                    controller: TextEditingController(text: appointmentTitle),
                     onChanged: (value) {
                       appointmentTitle = value;
                     },
-                    controller: TextEditingController(text: appointmentTitle),
                   ),
                   SizedBox(height: 10),
                   ElevatedButton(
@@ -296,18 +288,18 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
                   SizedBox(height: 10),
                   TextField(
                     decoration: InputDecoration(labelText: 'Location (Optional)'),
+                    controller: TextEditingController(text: appointmentLocation),
                     onChanged: (value) {
                       appointmentLocation = value;
                     },
-                    controller: TextEditingController(text: appointmentLocation),
                   ),
                   SizedBox(height: 10),
                   TextField(
                     decoration: InputDecoration(labelText: 'Notes (Optional)'),
+                    controller: TextEditingController(text: appointmentNotes),
                     onChanged: (value) {
                       appointmentNotes = value;
                     },
-                    controller: TextEditingController(text: appointmentNotes),
                   ),
                 ],
               ),
@@ -321,37 +313,37 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
                 TextButton(
                   onPressed: () {
                     if (appointmentTitle.isNotEmpty && selectedDate != null && selectedTime != null) {
-                      if (isEdit && appointment != null) {
+                      if (edit && appointment != null) {
                         _updateAppointment(
-                        appointment['id'],
-                        appointmentTitle,
-                        selectedDate!,
-                        selectedTime!,
-                        appointmentLocation,
-                        appointmentNotes,
-                      );
-                      }else{
-                      _addAppointment(
-                        appointmentTitle,
-                        selectedDate!,
-                        selectedTime!,
-                        appointmentLocation,
-                        appointmentNotes,
-                        context,
-                      );
+                          appointment['id'],
+                          appointmentTitle,
+                          selectedDate!,
+                          selectedTime!,
+                          appointmentLocation,
+                          appointmentNotes,
+                        );
+                      } else {
+                        _addAppointment(
+                          appointmentTitle,
+                          selectedDate!,
+                          selectedTime!,
+                          appointmentLocation,
+                          appointmentNotes,
+                          context,
+                        );
                       }
                       Navigator.of(context).pop();
                     } else {
                       _showOverlayError(context, 'Title, Date, and Time are required!');
                     }
                   },
-                  child: Text(isEdit ? 'Update' : 'Add'),
+                  child: Text(edit ? 'Save' : 'Add'),
                 ),
               ],
             );
-          },
-        );
-      },
+          }
+        ); 
+      }
     );
   }
 
@@ -376,7 +368,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
         ),
       ),
     );
-    overlay?.insert(overlayEntry);
+    overlay.insert(overlayEntry);
 
     Future.delayed(Duration(seconds: 2), () {
       overlayEntry.remove();
