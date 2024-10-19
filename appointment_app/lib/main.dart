@@ -86,23 +86,28 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
   }
 
   Future<void> _updateAppointment(
-    int id, String title, DateTime date, TimeOfDay time, String? location, String? notes, BuildContext context) async {
-      final formattedTime = time.hour.toString().padLeft(2, '0') + ':' + time.minute.toString().padLeft(2, '0');
-      await database.update(
-        'appointments',
-        {
-          'id': id,
-          'title': title,
-          'date': date.toIso8601String(),
-          'time': formattedTime,
-          'location': location ?? '',
-          'notes': notes ?? '',
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      _loadAppointments(); // Refresh the list after editing
-    }
+    int id,
+    String title,
+    DateTime date,
+    TimeOfDay time,
+    String? location,
+    String? notes,
+  ) async {
+    final formattedTime = time.hour.toString().padLeft(2, '0') + ':' + time.minute.toString().padLeft(2, '0');
+    await database.update(
+      'appointments',
+      {
+        'title': title,
+        'date': date.toIso8601String(),
+        'time': formattedTime,
+        'location': location ?? '',
+        'notes': notes ?? '',
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    _loadAppointments();
+  }
 
   Future<void> _deleteAppointment(int id) async {
     await database.delete(
@@ -141,7 +146,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   _selectedDay = selectedDay;
-                  _focusedDay = focusedDay; // 保持显示选中的日期
+                  _focusedDay = focusedDay;
                 });
               },
               selectedDayPredicate: (day) {
@@ -195,7 +200,6 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
               IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  // Call _showAppointmentDialog with edit mode and appointment details
                   _showAppointmentDialog(context, edit: true, appointment: appointment);
                 },
               ),
@@ -211,7 +215,6 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
       },
     );
   }
-  // the second and third parameter are optional
   void _showAppointmentDialog(BuildContext context, {bool edit = false, Map<String, dynamic>? appointment}) {
     String appointmentTitle = edit && appointment != null ? appointment['title'] : '';
     DateTime? selectedDate = edit && appointment != null ? DateTime.parse(appointment['date']) : null;
@@ -311,7 +314,6 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
                   onPressed: () {
                     if (appointmentTitle.isNotEmpty && selectedDate != null && selectedTime != null) {
                       if (edit && appointment != null) {
-                        // Update existing appointment
                         _updateAppointment(
                           appointment['id'],
                           appointmentTitle,
@@ -319,10 +321,8 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
                           selectedTime!,
                           appointmentLocation,
                           appointmentNotes,
-                          context,
                         );
                       } else {
-                        // Add new appointment
                         _addAppointment(
                           appointmentTitle,
                           selectedDate!,
@@ -368,7 +368,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
         ),
       ),
     );
-    overlay?.insert(overlayEntry);
+    overlay.insert(overlayEntry);
 
     Future.delayed(Duration(seconds: 2), () {
       overlayEntry.remove();
